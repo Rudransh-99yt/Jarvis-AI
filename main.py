@@ -3,24 +3,29 @@ from voice.transcribe import transcribe
 from brain.chat import ask_ai
 from voice.speak import speak
 
-print("🤖 Jarvis is running...")
+WAKE_WORD = "hey jarvis"
+
+print("🤖 Jarvis is running... Say 'Hey Jarvis'")
 
 while True:
     record()
 
-    text = transcribe().strip()
+    text = transcribe().strip().lower()
 
     if not text:
         continue
 
-    print(f"\nYou: {text}")
+    print(f"You: {text}")
 
-    if text.lower() in ["exit", "quit", "goodbye"]:
-        speak("Goodbye!")
-        break
+    if not text.startswith(WAKE_WORD):
+        print("😴 Wake word not detected.")
+        continue
 
-    reply = ask_ai(text)
+    query = text[len(WAKE_WORD):].strip()
 
-    print(f"\nJarvis: {reply}")
+    if not query:
+        speak("Yes?")
+        continue
 
+    reply = ask_ai(query)
     speak(reply)
