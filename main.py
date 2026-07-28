@@ -3,16 +3,20 @@ from voice.transcribe import transcribe
 from brain.chat import ask_ai
 from voice.speak import speak
 
-while True:
-    input("\nPress ENTER to talk...")
+print("🤖 Jarvis is running...")
 
+while True:
     record()
 
-    text = transcribe()
+    text = transcribe().strip()
+
+    if not text:
+        continue
 
     print(f"\nYou: {text}")
 
     if text.lower() in ["exit", "quit", "goodbye"]:
+        speak("Goodbye!")
         break
 
     reply = ask_ai(text)

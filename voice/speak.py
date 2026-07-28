@@ -1,7 +1,6 @@
 import subprocess
 
 def speak(text):
-    print("Jarvis:", text)
     subprocess.run(["say", text])
 
 if __name__ == "__main__":

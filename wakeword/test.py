@@ -1,6 +1,7 @@
-from openwakeword.model import Model
+while True:
+    text = input("You: ").strip().lower()
 
-model = Model()
-
-print("Wake-word models loaded successfully ✅")
-print(model.models.keys())
+    if text.startswith("hey jarvis"):
+        print("✅ Wake word detected!")
+    else:
+        print("😴 Ignored")
