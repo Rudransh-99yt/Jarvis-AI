@@ -1,22 +1,15 @@
-import ollama
+import requests
 from config.settings import settings
 
-with open("config/personality.txt", "r") as f:
-    SYSTEM_PROMPT = f.read()
-
-messages = [
-    {"role": "system", "content": SYSTEM_PROMPT}
-]
-
-def chat(prompt: str) -> str:
-    messages.append({"role": "user", "content": prompt})
-
-    response = ollama.chat(
-        model=settings.MODEL,
-        messages=messages,
+def ask_ai(prompt: str) -> str:
+    response = requests.post(
+        f"{settings.OLLAMA_URL}/api/generate",
+        json={
+            "model": settings.MODEL,
+            "prompt": prompt,
+            "think": False,
+            "stream": False
+        }
     )
 
-    reply = response["message"]["content"]
-    messages.append({"role": "assistant", "content": reply})
-
-    return reply
+    return response.json()["response"]

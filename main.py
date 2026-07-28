@@ -1,28 +1,22 @@
-from rich.console import Console
 from voice.listen import record
 from voice.transcribe import transcribe
-from core.assistant import ask
+from brain.chat import ask_ai
+from voice.speak import speak
 
-console = Console()
+while True:
+    input("\nPress ENTER to talk...")
 
-def main():
-    console.print("[bold green]Jarvis Voice Test[/bold green]")
+    record()
 
-    while True:
-        input("\nPress Enter to speak...")
+    text = transcribe()
 
-        record()
+    print(f"\nYou: {text}")
 
-        text = transcribe("voice/input.wav")
+    if text.lower() in ["exit", "quit", "goodbye"]:
+        break
 
-        console.print(f"\nYou: {text}")
+    reply = ask_ai(text)
 
-        if text.lower() in {"exit", "quit"}:
-            break
+    print(f"\nJarvis: {reply}")
 
-        reply = ask(text)
-
-        console.print(f"\nJarvis: {reply}")
-
-if __name__ == "__main__":
-    main()
+    speak(reply)

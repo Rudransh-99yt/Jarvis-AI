@@ -1,26 +1,25 @@
 import sounddevice as sd
 from scipy.io.wavfile import write
 
-def record(filename="voice/input.wav", samplerate=16000):
-    print("Speak... (Press Ctrl+C to stop)")
+def record(filename="voice/input.wav"):
+    print("Opening microphone...")
 
-    recording = []
+    fs = 16000
+    seconds = 5
 
-    def callback(indata, frames, time, status):
-        recording.extend(indata.copy())
-
-    with sd.InputStream(
-        samplerate=samplerate,
+    recording = sd.rec(
+        int(seconds * fs),
+        samplerate=fs,
         channels=1,
-        dtype="int16",
-        callback=callback,
-    ):
-        try:
-            while True:
-                pass
-        except KeyboardInterrupt:
-            pass
+        dtype="int16"
+    )
 
-    import numpy as np
-    write(filename, samplerate, np.array(recording, dtype="int16"))
-    print("Saved:", filename)
+    print("Recording...")
+    sd.wait()
+
+    write(filename, fs, recording)
+
+    print(f"Saved to {filename}")
+
+if __name__ == "__main__":
+    record()

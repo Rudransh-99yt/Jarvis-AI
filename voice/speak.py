@@ -1,2 +1,8 @@
+import subprocess
+
 def speak(text):
-    print(f"Jarvis: {text}")
+    print("Jarvis:", text)
+    subprocess.run(["say", text])
+
+if __name__ == "__main__":
+    speak("Hello Rudransh. I am Jarvis.")

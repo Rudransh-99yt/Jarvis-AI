@@ -1,11 +1,14 @@
 from faster_whisper import WhisperModel
 
-model = WhisperModel(
-    "large-v3-turbo",
-    device="auto",
-    compute_type="int8"
-)
+model = WhisperModel("base", device="cpu", compute_type="int8")
 
-def transcribe(audio_file):
-    segments, _ = model.transcribe(audio_file)
-    return " ".join(segment.text for segment in segments).strip()
+def transcribe(filename="voice/input.wav"):
+    segments, info = model.transcribe(filename)
+
+    text = " ".join(segment.text for segment in segments)
+
+    print("\nLanguage:", info.language)
+    return text.strip()
+
+if __name__ == "__main__":
+    print(transcribe())
