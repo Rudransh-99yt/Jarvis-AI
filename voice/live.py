@@ -1,47 +1,50 @@
 import sys
 from pathlib import Path
+
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
-import torch
-from silero_vad import load_silero_vad, get_speech_timestamps
+import audio.state as state
 
-import voice.state as state
-from voice.mic import start, stop, read
-from voice.recorder import Recorder
+from audio.stream import AudioStream
+from audio.buffer import RollingBuffer
+from audio.detector import SpeechDetector
+from audio.recorder import Recorder
 
-model = load_silero_vad()
+mic = AudioStream()
+buffer = RollingBuffer()
 recorder = Recorder()
+detector = SpeechDetector()
 
-print("🤖 Live listener ready.")
+mic.start()
 
-start()
+print("🤖 Live recorder running...")
 
 try:
     while True:
-        chunk = read()
+        chunk = mic.read()
+        buffer.add(chunk)
 
-        speech = get_speech_timestamps(
-            torch.from_numpy(chunk.flatten()),
-            model,
-            sampling_rate=16000
-        )
+        if len(buffer) < 31:
+            continue
 
-        if speech:
+        speaking = detector.detect(buffer.get())
+
+        if speaking:
             if not state.RECORDING:
-                print("🎤 Speech detected")
+                print("🎤 Recording...")
                 recorder.clear()
                 state.RECORDING = True
+                state.SILENCE_BLOCKS = 0
 
             recorder.add(chunk)
-            state.SILENCE_BLOCKS = 0
 
         elif state.RECORDING:
             recorder.add(chunk)
             state.SILENCE_BLOCKS += 1
 
-            if state.SILENCE_BLOCKS > 60:
+            if state.SILENCE_BLOCKS >= 30:
                 recorder.save()
-                print("✅ Finished")
+                print("✅ Recording saved")
 
                 recorder.clear()
                 state.RECORDING = False
@@ -50,4 +53,4 @@ try:
 except KeyboardInterrupt:
     pass
 
-stop()
+mic.stop()
