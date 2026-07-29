@@ -10,47 +10,47 @@ from audio.buffer import RollingBuffer
 from audio.detector import SpeechDetector
 from audio.recorder import Recorder
 
-mic = AudioStream()
-buffer = RollingBuffer()
-recorder = Recorder()
-detector = SpeechDetector()
+def record():
+    mic = AudioStream()
+    buffer = RollingBuffer()
+    recorder = Recorder()
+    detector = SpeechDetector()
 
-mic.start()
+    mic.start()
 
-print("🤖 Live recorder running...")
+    print("🎤 Listening...")
 
-try:
-    while True:
-        chunk = mic.read()
-        buffer.add(chunk)
+    try:
+        while True:
+            chunk = mic.read()
+            buffer.add(chunk)
 
-        if len(buffer) < 31:
-            continue
+            if len(buffer) < 31:
+                continue
 
-        speaking = detector.detect(buffer.get())
+            speaking = detector.detect(buffer.get())
 
-        if speaking:
-            if not state.RECORDING:
-                print("🎤 Recording...")
-                recorder.clear()
-                state.RECORDING = True
-                state.SILENCE_BLOCKS = 0
+            if speaking:
+                if not state.RECORDING:
+                    recorder.clear()
+                    state.RECORDING = True
+                    state.SILENCE_BLOCKS = 0
 
-            recorder.add(chunk)
+                recorder.add(chunk)
 
-        elif state.RECORDING:
-            recorder.add(chunk)
-            state.SILENCE_BLOCKS += 1
+            elif state.RECORDING:
+                recorder.add(chunk)
+                state.SILENCE_BLOCKS += 1
 
-            if state.SILENCE_BLOCKS >= 30:
-                recorder.save()
-                print("✅ Recording saved")
+                if state.SILENCE_BLOCKS >= 30:
+                    recorder.save()
+                    recorder.clear()
+                    state.RECORDING = False
+                    state.SILENCE_BLOCKS = 0
+                    break
 
-                recorder.clear()
-                state.RECORDING = False
-                state.SILENCE_BLOCKS = 0
+    finally:
+        mic.stop()
 
-except KeyboardInterrupt:
-    pass
-
-mic.stop()
+if __name__ == "__main__":
+    record()
