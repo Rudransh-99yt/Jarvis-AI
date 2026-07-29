@@ -8,8 +8,8 @@ from voice.transcribe import transcribe
 from voice.speak import speak
 
 from brain.chat import ask_ai
+from agent.planner import plan
 
-from tools.router import route
 from tools.open_app import run as open_app
 from tools.calculator import run as calculator
 from tools.system import run as system_tool
@@ -22,11 +22,24 @@ from tools.memory import run as memory_tool
 from tools.volume import run as volume_tool
 from tools.brightness import run as brightness_tool
 
+TOOLS = {
+    "open_app": open_app,
+    "calculator": calculator,
+    "system": system_tool,
+    "screenshot": screenshot_tool,
+    "web_search": web_search,
+    "time": time_tool,
+    "timer": timer_tool,
+    "clipboard": clipboard_tool,
+    "memory": memory_tool,
+    "volume": volume_tool,
+    "brightness": brightness_tool,
+}
+
 print("🤖 Jarvis is ready.")
 
 while True:
     record()
-
     text = transcribe("voice/input.wav").strip()
 
     if not text:
@@ -34,45 +47,19 @@ while True:
 
     print(f"\n👤 {text}")
 
-    tool = route(text)
+    tasks = plan(text)
 
-    if tool == "open_app":
-        reply = open_app(text)
+    if tasks:
+        replies = []
+        for tool, cmd in tasks:
+            try:
+                replies.append(TOOLS[tool](cmd))
+            except Exception as e:
+                replies.append(f"{tool}: {e}")
 
-    elif tool == "calculator":
-        reply = calculator(text)
-
-    elif tool == "system":
-        reply = system_tool(text)
-
-    elif tool == "screenshot":
-        reply = screenshot_tool(text)
-
-    elif tool == "web_search":
-        reply = web_search(text)
-
-    elif tool == "time":
-        reply = time_tool(text)
-
-    elif tool == "timer":
-        reply = timer_tool(text)
-
-    elif tool == "clipboard":
-        reply = clipboard_tool(text)
-
-    elif tool == "memory":
-        reply = memory_tool(text)
-
-    elif tool == "volume":
-        reply = volume_tool(text)
-
-    elif tool == "brightness":
-        reply = brightness_tool(text)
-
+        reply = "\n".join(replies)
     else:
         reply = ask_ai(text)
 
     print(f"\n🤖 {reply}")
-
     speak(reply)
-from tools.system import run as system_tool
