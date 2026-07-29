@@ -1,48 +1,24 @@
 import sounddevice as sd
 import numpy as np
-import webrtcvad
 from scipy.io.wavfile import write
 
-def record(filename="voice/input.wav"):
-    fs = 16000
-    vad = webrtcvad.Vad(2)
+FS = 16000
 
-    print("🎤 Speak... (auto-stops after silence)")
+def record(filename="voice/input.wav", seconds=5):
+    print("🎤 Listening...")
 
-    frames = []
-    silence = 0
-
-    stream = sd.RawInputStream(
-        samplerate=fs,
-        blocksize=480,
-        dtype="int16",
-        channels=1
+    audio = sd.rec(
+        int(seconds * FS),
+        samplerate=FS,
+        channels=1,
+        dtype="int16"
     )
 
-    stream.start()
+    sd.wait()
 
-    try:
-        while True:
-            data, overflowed = stream.read(480)
+    write(filename, FS, audio)
 
-            frames.append(np.frombuffer(data, dtype=np.int16))
-
-            if vad.is_speech(data, fs):
-                silence = 0
-            else:
-                silence += 1
-
-            if len(frames) > 20 and silence > 30:
-                break
-
-    finally:
-        stream.stop()
-        stream.close()
-
-    audio = np.concatenate(frames)
-    write(filename, fs, audio)
-
-    print("✅ Saved:", filename)
+    print(f"✅ Saved: {filename}")
 
 if __name__ == "__main__":
     record()
