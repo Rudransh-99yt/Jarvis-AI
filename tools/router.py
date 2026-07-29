@@ -1,6 +1,15 @@
 def route(text: str):
     text = text.lower()
 
+    if "brightness" in text:
+        return "brightness"
+
+    if "volume" in text or "mute" in text or "unmute" in text:
+        return "volume"
+
+    if any(x in text for x in ["copy","paste"]):
+        return "clipboard"
+
     if "timer" in text:
         return "timer"
 
@@ -19,7 +28,7 @@ def route(text: str):
     if "lock" in text or "sleep" in text:
         return "system"
 
-    if any(x in text for x in ["calculate", "+", "-", "*", "/"]):
+    if any(x in text for x in ["calculate","+","-","*","/"]):
         return "calculator"
 
     if "remember" in text:

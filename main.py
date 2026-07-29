@@ -17,6 +17,10 @@ from tools.screenshot import run as screenshot_tool
 from tools.web_search import run as web_search
 from tools.time_tool import run as time_tool
 from tools.timer import run as timer_tool
+from tools.clipboard import run as clipboard_tool
+from tools.memory import run as memory_tool
+from tools.volume import run as volume_tool
+from tools.brightness import run as brightness_tool
 
 print("🤖 Jarvis is ready.")
 
@@ -52,6 +56,18 @@ while True:
 
     elif tool == "timer":
         reply = timer_tool(text)
+
+    elif tool == "clipboard":
+        reply = clipboard_tool(text)
+
+    elif tool == "memory":
+        reply = memory_tool(text)
+
+    elif tool == "volume":
+        reply = volume_tool(text)
+
+    elif tool == "brightness":
+        reply = brightness_tool(text)
 
     else:
         reply = ask_ai(text)
