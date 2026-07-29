@@ -1,4 +1,9 @@
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).resolve().parent.parent))
+
 import sounddevice as sd
+import audio.vad as vad
 
 FS = 16000
 BLOCK = 480
@@ -15,11 +20,11 @@ print("🎤 Listening...")
 
 try:
     while True:
-        data, overflowed = stream.read(BLOCK)
-        print(len(data))
+        data, _ = stream.read(BLOCK)
+        vad.process(data)
+
 except KeyboardInterrupt:
     pass
 
 stream.stop()
 stream.close()
-print("Done.")
