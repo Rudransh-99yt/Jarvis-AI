@@ -14,6 +14,9 @@ from tools.open_app import run as open_app
 from tools.calculator import run as calculator
 from tools.system import run as system_tool
 from tools.screenshot import run as screenshot_tool
+from tools.web_search import run as web_search
+from tools.time_tool import run as time_tool
+from tools.timer import run as timer_tool
 
 print("🤖 Jarvis is ready.")
 
@@ -40,6 +43,15 @@ while True:
 
     elif tool == "screenshot":
         reply = screenshot_tool(text)
+
+    elif tool == "web_search":
+        reply = web_search(text)
+
+    elif tool == "time":
+        reply = time_tool(text)
+
+    elif tool == "timer":
+        reply = timer_tool(text)
 
     else:
         reply = ask_ai(text)

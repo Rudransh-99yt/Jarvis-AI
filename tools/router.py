@@ -1,6 +1,15 @@
 def route(text: str):
     text = text.lower()
 
+    if "timer" in text:
+        return "timer"
+
+    if "time" in text:
+        return "time"
+
+    if "search" in text or "google" in text or "find" in text or "look up" in text:
+        return "web_search"
+
     if "open" in text:
         return "open_app"
 
