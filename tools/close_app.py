@@ -26,12 +26,10 @@ def run(text):
     for key, app in APPS.items():
         if re.search(rf"\b{re.escape(key)}\b", text):
             try:
-                subprocess.run([
-                    "osascript",
-                    "-e",
-                    f'tell application "{app}" to quit'
-                ], check=True)
-
+                subprocess.run(
+                    ["osascript", "-e", f'tell application "{app}" to quit'],
+                    check=True,
+                )
                 closed.append(f"Closed {app}")
             except:
                 closed.append(f"Couldn't close {app}")

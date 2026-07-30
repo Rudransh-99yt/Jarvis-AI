@@ -9,6 +9,7 @@ from tools.brightness import run as brightness
 from tools.timer import run as timer
 from tools.time_tool import run as time_tool
 from tools.memory import run as memory
+from tools.close_app import run as close_app
 
 TOOLS = {
     "open_app": open_app,
@@ -22,6 +23,7 @@ TOOLS = {
     "timer": timer,
     "time": time_tool,
     "memory": memory,
+    "close_app": close_app,
 }
 
 def execute(tasks):

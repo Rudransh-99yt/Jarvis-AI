@@ -47,4 +47,8 @@ def plan(text):
     ]):
         tasks.append(("time", text))
 
+
+    if any(x in text for x in ["close", "quit", "exit"]):
+        tasks.append(("close_app", text))
+
     return tasks
