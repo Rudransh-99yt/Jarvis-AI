@@ -1,3 +1,4 @@
+import time
 import requests
 
 from config.settings import settings
@@ -15,34 +16,40 @@ def ask_ai(prompt: str) -> str:
         f"- {k}: {v}" for k, v in memory.items()
     )
 
-    messages = [
-        {
-            "role": "system",
-            "content": SYSTEM_PROMPT +
-            "\n\nKnown facts about the user:\n" +
-            memory_text
-        }
-    ]
+    messages = [{
+        "role": "system",
+        "content": SYSTEM_PROMPT +
+        "\n\nKnown facts about the user:\n" +
+        memory_text
+    }]
 
     messages.extend(get())
     messages.append({"role": "user", "content": prompt})
 
-    response = requests.post(
-        f"{settings.OLLAMA_URL}/api/chat",
-        json={
-            "model": settings.MODEL,
-            "messages": messages,
-            "stream": False,
-            "think": False
-        },
-        timeout=120
-    )
+    for _ in range(3):
+        try:
+            response = requests.post(
+                f"{settings.OLLAMA_URL}/api/chat",
+                json={
+                    "model": settings.MODEL,
+                    "messages": messages,
+                    "stream": False,
+                    "think": False
+                },
+                timeout=120
+            )
 
-    response.raise_for_status()
+            response.raise_for_status()
 
-    reply = response.json()["message"]["content"].strip()
+            reply = response.json()["message"]["content"].strip()
 
-    add("user", prompt)
-    add("assistant", reply)
+            add("user", prompt)
+            add("assistant", reply)
 
-    return reply
+            return reply
+
+        except requests.RequestException:
+            print("⚠️ Ollama unavailable. Retrying...")
+            time.sleep(2)
+
+    return "Sorry, my AI engine is unavailable right now."

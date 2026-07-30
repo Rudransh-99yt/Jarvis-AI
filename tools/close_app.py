@@ -28,7 +28,7 @@ def run(text):
             try:
                 subprocess.run(
                     ["osascript", "-e", f'tell application "{app}" to quit'],
-                    check=True,
+                    check=True
                 )
                 closed.append(f"Closed {app}")
             except:
