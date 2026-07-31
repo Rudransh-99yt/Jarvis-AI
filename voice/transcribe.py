@@ -1,22 +1,16 @@
-from faster_whisper import WhisperModel
+import mlx_whisper
 
-model = WhisperModel(
-    "turbo",
-    device="cpu",
-    compute_type="int8"
-)
+MODEL = "mlx-community/whisper-turbo"
 
 def transcribe(filename="voice/input.wav"):
-    segments, info = model.transcribe(
+    result = mlx_whisper.transcribe(
         filename,
-        beam_size=1,
-        vad_filter=True
+        path_or_hf_repo=MODEL,
+        language="en",
     )
 
-    text = " ".join(segment.text for segment in segments)
-
-    print("\nLanguage:", info.language)
-    return text.strip()
+    print("\nLanguage:", result["language"])
+    return result["text"].strip()
 
 if __name__ == "__main__":
     print(transcribe())
