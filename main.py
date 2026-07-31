@@ -7,9 +7,10 @@ from voice.live import record
 from voice.transcribe import transcribe
 from voice.speak import speak
 from brain.chat import ask_ai
-
 from agent.planner import plan
 from agent.executor import execute
+
+WAKE_WORD = "jarvis"
 
 print("🤖 Jarvis is ready.")
 
@@ -23,16 +24,27 @@ while True:
 
     print(f"\n👤 {text}")
 
+    lower = text.lower()
+
+    if WAKE_WORD not in lower:
+        continue
+
+    command = lower.split(WAKE_WORD, 1)[1].strip()
+
+    if not command:
+        speak("Yes?")
+        continue
+
     try:
-        tasks = plan(text)
+        tasks = plan(command)
 
         if tasks:
             reply = execute(tasks)
         else:
-            reply = ask_ai(text)
+            reply = ask_ai(command)
 
     except Exception:
-        reply = ask_ai(text)
+        reply = ask_ai(command)
 
     print(f"\n🤖 {reply}")
     speak(reply)
