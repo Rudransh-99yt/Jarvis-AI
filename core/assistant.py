@@ -1,21 +1,47 @@
-from voice.listen import record
+from voice.live import record
 from voice.transcribe import transcribe
-from brain.chat import ask_ai
 from voice.speak import speak
 
+from llm.mlx_engine import ask as ask_ai
+from agent.planner import plan
+from agent.executor import execute
 
-def run_once():
-    record()
+WAKE_WORD = "jarvis"
 
-    text = transcribe().strip()
+def run():
+    print("🤖 Jarvis Core started.")
 
-    if not text:
-        return
+    while True:
+        record()
 
-    print(f"\nYou: {text}")
+        text = transcribe("voice/input.wav").strip()
 
-    reply = ask_ai(text)
+        if not text:
+            continue
 
-    print(f"\nJarvis: {reply}")
+        print(f"\n👤 {text}")
 
-    speak(reply)
+        lower = text.lower()
+
+        if WAKE_WORD not in lower:
+            continue
+
+        command = lower.split(WAKE_WORD, 1)[1].strip()
+
+        if not command:
+            speak("Yes?")
+            continue
+
+        try:
+            tasks = plan(command)
+
+            if tasks:
+                reply = execute(tasks)
+            else:
+                reply = ask_ai(command)
+
+        except Exception:
+            reply = ask_ai(command)
+
+        print(f"\n🤖 {reply}")
+        speak(reply)

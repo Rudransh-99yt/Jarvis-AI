@@ -1,0 +1,82 @@
+rudranshsahu@Rudranshs-MacBook-Air Jarvis % cat -n main.py
+     1  import sys
+     2  from pathlib import Path
+     3
+     4  sys.path.append(str(Path(__file__).resolve().parent))
+     5
+     6  from voice.live import record
+     7  from voice.transcribe import transcribe
+     8  from voice.speak import speak
+     9  from llm.mlx_engine import ask as ask_ai
+    10  from agent.planner import plan
+    11  from agent.executor import execute
+    12
+    13  WAKE_WORD = "jarvis"
+    14
+    15  print("🤖 Jarvis is ready.")
+    16
+    17  while True:
+    18      record()
+    19
+    20      text = transcribe("voice/input.wav").strip()
+    21
+    22      if not text:
+    23          continue
+    24
+    25      print(f"\n👤 {text}")
+    26
+    27      lower = text.lower()
+    28
+    29      if WAKE_WORD not in lower:
+    30          continue
+    31
+    32      command = lower.split(WAKE_WORD, 1)[1].strip()
+    33
+    34      if not command:
+    35          speak("Yes?")
+    36          continue
+    37
+    38      try:
+    39          tasks = plan(command)
+    40
+    41          if tasks:
+    42              reply = execute(tasks)
+    43          else:
+    44              reply = ask_ai(command)
+    45
+    46      except Exception:
+    47          reply = ask_ai(command)
+    48
+    49      print(f"\n🤖 {reply}")
+    50      speak(reply)
+rudranshsahu@Rudranshs-MacBook-Air Jarvis %  source /Users/rudranshsahu/Desktop/Jarvis/.venv/bin/ac
+tivate
+((.venv) ) rudranshsahu@Rudranshs-MacBook-Air Jarvis % cat -n voice/speak.py
+     1  import subprocess
+     2
+     3  def speak(text):
+     4      subprocess.run(["say", text])
+     5
+     6  if __name__ == "__main__":
+     7      speak("Hello Rudransh. I am Jarvis.")
+((.venv) ) rudranshsahu@Rudranshs-MacBook-Air Jarvis % from voice.listen import record
+from voice.transcribe import transcribe
+from brain.chat import ask_ai
+from voice.speak import speak
+
+
+def run_once():
+    record()
+
+    text = transcribe().strip()
+
+    if not text:
+        return
+
+    print(f"\nYou: {text}")
+
+    reply = ask_ai(text)
+
+    print(f"\nJarvis: {reply}")
+
+    speak(reply)
