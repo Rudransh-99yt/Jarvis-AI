@@ -1,0 +1,19 @@
+Who are you?
+
+Explain quantum computing in one paragraph.
+
+Write a Python function to reverse a linked list.
+
+Summarize the theory of relativity in simple words.
+
+What is the capital of Japan?
+
+Tell me a joke.
+
+Write a professional email requesting leave.
+
+Explain recursion with an example.
+
+How do I optimize Python code?
+
+What time is it right now?
