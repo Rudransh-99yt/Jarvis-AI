@@ -4,3 +4,4 @@ __pycache__/
 .env
 voice/input.wav
 .DS_Store
+*.bak
