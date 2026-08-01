@@ -11,6 +11,7 @@ print("Loading MLX model...")
 model, tokenizer = load(MODEL)
 print("Model loaded!")
 
+
 def ask(prompt):
     add("User", prompt)
 
@@ -24,9 +25,15 @@ Assistant:"""
         model,
         tokenizer,
         prompt=full_prompt,
-        max_tokens=120,
+        max_tokens=80,
         verbose=False,
-    )
+    ).strip()
+
+    if "\nUser:" in text:
+        text = text.split("\nUser:")[0].strip()
+
+    if "\nAssistant:" in text:
+        text = text.split("\nAssistant:")[0].strip()
 
     text = text.replace("</h1>", "").strip()
 
