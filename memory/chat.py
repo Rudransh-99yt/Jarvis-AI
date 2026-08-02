@@ -1,13 +1,12 @@
-history = []
+from collections import deque
+
+history = deque(maxlen=12)
 
 def add(role, text):
-    history.append((role, text))
-
-    if len(history) > 10:
-        history.pop(0)
+    history.append({"role": role, "text": text})
 
 def context():
-    return "\n".join(
-        f"{role}: {text}"
-        for role, text in history
-    )
+    return "\n".join(f'{m["role"]}: {m["text"]}' for m in history)
+
+def clear():
+    history.clear()

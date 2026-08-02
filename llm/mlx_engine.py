@@ -3,7 +3,7 @@ from pathlib import Path
 from mlx_lm import load, generate
 from memory.chat import add, context
 
-MODEL = "mlx-community/gemma-3-4b-it-4bit"
+MODEL = "mlx-community/Qwen3-8B-4bit"
 
 SYSTEM = Path("prompts/system.txt").read_text()
 
@@ -15,27 +15,25 @@ print("Model loaded!")
 def ask(prompt):
     add("User", prompt)
 
-    full_prompt = f"""{SYSTEM}
+    messages = [
+        {"role": "system", "content": SYSTEM},
+        {"role": "user", "content": context() + "\n\n" + prompt},
+    ]
 
-{context()}
-
-Assistant:"""
+    prompt = tokenizer.apply_chat_template(
+        messages,
+        tokenize=False,
+        add_generation_prompt=True,
+        enable_thinking=False,
+    )
 
     text = generate(
         model,
         tokenizer,
-        prompt=full_prompt,
-        max_tokens=80,
+        prompt=prompt,
+        max_tokens=200,
         verbose=False,
     ).strip()
-
-    if "\nUser:" in text:
-        text = text.split("\nUser:")[0].strip()
-
-    if "\nAssistant:" in text:
-        text = text.split("\nAssistant:")[0].strip()
-
-    text = text.replace("</h1>", "").strip()
 
     add("Assistant", text)
 

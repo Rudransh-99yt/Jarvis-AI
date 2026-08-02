@@ -33,6 +33,7 @@ def record():
             if speaking:
                 if not state.RECORDING:
                     recorder.clear()
+                    recorder.add_many(buffer.get())
                     state.RECORDING = True
                     state.SILENCE_BLOCKS = 0
 

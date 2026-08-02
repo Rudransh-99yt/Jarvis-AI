@@ -1,39 +1,27 @@
-from tools.open_app import run as open_app
-from tools.web_search import run as web_search
-from tools.calculator import run as calculator
-from tools.system import run as system
-from tools.screenshot import run as screenshot
-from tools.clipboard import run as clipboard
-from tools.volume import run as volume
-from tools.brightness import run as brightness
-from tools.timer import run as timer
-from tools.time_tool import run as time_tool
-from tools.memory import run as memory
-from tools.close_app import run as close_app
+from tools import TOOLS
 
-TOOLS = {
-    "open_app": open_app,
-    "web_search": web_search,
-    "calculator": calculator,
-    "system": system,
-    "screenshot": screenshot,
-    "clipboard": clipboard,
-    "volume": volume,
-    "brightness": brightness,
-    "timer": timer,
-    "time": time_tool,
-    "memory": memory,
-    "close_app": close_app,
-}
+def execute(tool_calls):
+    outputs=[]
 
-def execute(tasks):
-    results = []
+    for call in tool_calls:
+        name=call["tool"]
+        args=call.get("args","")
 
-    for tool, command in tasks:
+        if name not in TOOLS:
+            outputs.append({
+                "tool":name,
+                "result":"Unknown tool."
+            })
+            continue
+
         try:
-            reply = TOOLS[tool](command)
-            results.append(f"✓ {reply}")
+            result=TOOLS[name](args)
         except Exception as e:
-            results.append(f"✗ {tool}: {e}")
+            result=str(e)
 
-    return "\n".join(results)
+        outputs.append({
+            "tool":name,
+            "result":result
+        })
+
+    return outputs

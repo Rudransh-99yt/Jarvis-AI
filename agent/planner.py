@@ -1,54 +1,133 @@
+import json
 import re
 
-def plan(text):
-    text = text.lower()
-    tasks = []
+from llm.mlx_engine import model, tokenizer
+from mlx_lm import generate
 
-    # ---------- OPEN APPS ----------
-    if "open" in text:
-        after = text.split("open",1)[1]
+TOOLS = """
+open_app(text)
+close_app(text)
+web_search(text)
+calculator(text)
+time()
+timer(text)
+volume(text)
+brightness(text)
+system(text)
+memory(text)
+screenshot()
+"""
 
-        stop = re.search(
-            r"\b(search|google|find|look up|set|tell|what|time|volume|brightness|timer)\b",
-            after,
-        )
+PROMPT = f"""
+You are an AI planner.
 
-        if stop:
-            after = after[:stop.start()]
+Convert the user's request into one or more tool calls.
 
-        after = re.sub(r"\b(app|apps|jarvis|the)\b", "", after)
+Rules:
 
-        names = re.findall(r"[a-z0-9.+-]+(?:\s+[a-z0-9.+-]+)?", after)
+- Return ONLY JSON.
+- Never explain.
+- Never use markdown.
+- Multiple actions -> multiple tool calls.
+- Preserve execution order.
+- If conversation is enough, return [].
+- Ignore small talk.
 
-        for name in names:
-            name = name.strip()
-            if name and name not in ["and"]:
-                tasks.append(("open_app", f"open {name}"))
+Examples:
 
-    # ---------- SEARCH ----------
-    m = re.search(r"(?:search|google|find)\s+(.+?)(?=set|tell|what|time|volume|brightness|$)", text)
-    if m:
-        for q in re.split(r",|\band\b", m.group(1)):
-            q = q.strip()
-            if q:
-                tasks.append(("web_search", f"search {q}"))
+User:
+open chrome
 
-    if "volume" in text or "mute" in text or "unmute" in text:
-        tasks.append(("volume", text))
+[
+  {{
+    "tool":"open_app",
+    "args":"chrome"
+  }}
+]
 
-    if "brightness" in text:
-        tasks.append(("brightness", text))
+User:
+open chrome and calculator
 
-    if any(x in text for x in [
-        "time right now",
-        "tell me the time",
-        "what's the time",
-        "what is the time"
-    ]):
-        tasks.append(("time", text))
+[
+  {{
+    "tool":"open_app",
+    "args":"chrome"
+  }},
+  {{
+    "tool":"open_app",
+    "args":"calculator"
+  }}
+]
 
+User:
+close chrome then open calendar
 
-    if any(x in text for x in ["close", "quit", "exit"]):
-        tasks.append(("close_app", text))
+[
+  {{
+    "tool":"close_app",
+    "args":"chrome"
+  }},
+  {{
+    "tool":"open_app",
+    "args":"calendar"
+  }}
+]
 
-    return tasks
+User:
+what time is it
+
+[
+  {{
+    "tool":"time",
+    "args":""
+  }}
+]
+
+User:
+remember my birthday is 14 april
+
+[
+  {{
+    "tool":"memory",
+    "args":"remember my birthday is 14 april"
+  }}
+]
+
+User:
+tell me a joke
+
+[]
+
+Available tools:
+
+{TOOLS}
+"""
+
+def plan(user):
+    prompt = tokenizer.apply_chat_template(
+        [
+            {"role":"system","content":PROMPT},
+            {"role":"user","content":user},
+        ],
+        tokenize=False,
+        add_generation_prompt=True,
+        enable_thinking=False,
+    )
+
+    out = generate(
+        model,
+        tokenizer,
+        prompt=prompt,
+        max_tokens=300,
+        verbose=False,
+    ).strip()
+
+    m = re.search(r'\[[\s\S]*\]', out)
+
+    if not m:
+        return []
+
+    try:
+        return json.loads(m.group())
+    except Exception:
+        return []

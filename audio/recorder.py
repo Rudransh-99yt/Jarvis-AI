@@ -13,6 +13,10 @@ class Recorder:
     def add(self, chunk):
         self.frames.append(chunk.copy())
 
+    def add_many(self, chunks):
+        for chunk in chunks:
+            self.frames.append(chunk.copy())
+
     def save(self, filename="voice/input.wav"):
         if not self.frames:
             return

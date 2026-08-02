@@ -1,7 +1,13 @@
 import subprocess
 
-def speak(text):
-    subprocess.run(["say", text])
+VOICE = "Samantha"
 
-if __name__ == "__main__":
-    speak("Hello Rudransh. I am Jarvis.")
+def speak(text):
+    subprocess.run([
+        "say",
+        "-v",
+        VOICE,
+        "-r",
+        "190",
+        text
+    ])
