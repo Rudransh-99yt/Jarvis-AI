@@ -5,3 +5,5 @@ __pycache__/
 voice/input.wav
 .DS_Store
 *.bak
+build/
+dist/
