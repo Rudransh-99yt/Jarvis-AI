@@ -17,6 +17,16 @@ ALIASES = {
     "code": "visual studio code",
     "vs code": "visual studio code",
     "vscode": "visual studio code",
+
+    # Messaging / communication
+    "whatsapp": "whatsapp",
+    "whatsapp desktop": "whatsapp",
+    "discord": "discord",
+
+    # Development
+    "antigravity": "antigravity",
+    "anti gravity": "antigravity",
+    "anti-gravity": "antigravity",
 }
 
 def match(name):
@@ -25,12 +35,28 @@ def match(name):
     if name in ALIASES:
         name = ALIASES[name]
 
+    # Exact installed-app match
     if name in APPS:
         return APPS[name]
 
-    m = get_close_matches(name, APPS.keys(), n=1, cutoff=0.45)
+    # Case-insensitive normalized match
+    normalized = {
+        app.lower().strip(): app
+        for app in APPS
+    }
 
-    if m:
-        return APPS[m[0]]
+    if name in normalized:
+        return normalized[name]
+
+    # Fuzzy match only after exact matching fails
+    matches = get_close_matches(
+        name,
+        normalized.keys(),
+        n=1,
+        cutoff=0.70,
+    )
+
+    if matches:
+        return normalized[matches[0]]
 
     return None

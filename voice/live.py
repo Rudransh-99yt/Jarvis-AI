@@ -10,6 +10,7 @@ from audio.buffer import RollingBuffer
 from audio.detector import SpeechDetector
 from audio.recorder import Recorder
 
+
 def record():
     mic = AudioStream()
     buffer = RollingBuffer()
@@ -20,12 +21,17 @@ def record():
 
     print("🎤 Listening...")
 
+    # Reset state for every question
+    state.RECORDING = False
+    state.SILENCE_BLOCKS = 0
+
     try:
         while True:
             chunk = mic.read()
             buffer.add(chunk)
 
-            if len(buffer) < 31:
+            # Don't run VAD until we have enough context
+            if len(buffer) < 8:
                 continue
 
             speaking = detector.detect(buffer.get())
@@ -43,7 +49,7 @@ def record():
                 recorder.add(chunk)
                 state.SILENCE_BLOCKS += 1
 
-                if state.SILENCE_BLOCKS >= 30:
+                if state.SILENCE_BLOCKS >= 11:
                     recorder.save()
                     recorder.clear()
                     state.RECORDING = False
@@ -52,6 +58,7 @@ def record():
 
     finally:
         mic.stop()
+
 
 if __name__ == "__main__":
     record()

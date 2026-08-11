@@ -1,0 +1,99 @@
+from voice.live import record
+from voice.transcribe import transcribe
+from voice.speak import speak
+import time
+
+from agent.planner import plan
+from agent.executor import execute
+from llm.mlx_engine import ask as ask_ai
+
+WAKE_WORD = "jarvis"
+
+def run():
+    question_number = 0
+    log_dir = Path("logs")
+    log_dir.mkdir(exist_ok=True)
+    log_file = log_dir / "performance.csv"
+
+    if not log_file.exists():
+        with open(log_file, "w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow([
+                "question",
+                "total_seconds"
+            ])
+
+
+    print("🤖 Jarvis started.")
+
+    while True:
+        question_number += 1
+        question_start = time.time()
+
+        print(f"\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        print(f"📊 Question #{question_number}")
+        print(f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+
+        total_time = time.time() - question_start
+
+        print(f"⏱️ TOTAL QUESTION TIME: {total_time:.2f}s")
+
+        with open(log_file, "a", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow([
+                question_number,
+                f"{total_time:.2f}"
+            ])
+
+        record()
+        t0 = time.time()
+
+        t1 = time.time()
+        text = transcribe("voice/input.wav").strip()
+        print(f"🎙️ Transcribe: {time.time()-t1:.2f}s")
+
+        if not text:
+            continue
+
+        print(f"\n👤 {text}")
+
+        lower = text.lower()
+
+        if WAKE_WORD in lower:
+            command = lower.split(WAKE_WORD,1)[1].strip()
+        else:
+            command = text
+
+        tool_calls = plan(command)
+
+        if tool_calls:
+            results = execute(tool_calls)
+
+            prompt = f"""
+User:
+{command}
+
+Tool Results:
+{results}
+
+Answer the user naturally using the tool results.
+"""
+
+            t2 = time.time()
+            reply = ask_ai(prompt)
+            print(f"🧠 LLM: {time.time()-t2:.2f}s")
+
+        else:
+            t2 = time.time()
+            reply = ask_ai(command)
+            print(f"🧠 LLM: {time.time()-t2:.2f}s")
+
+        print(f"\n🤖 {reply}")
+        t3 = time.time()
+        speak(reply)
+        print(f"🔊 Speak: {time.time()-t3:.2f}s")
+        print(f"🚀 Total loop: {time.time()-t0:.2f}s")
+        time.sleep(0.6)
+
+if __name__ == "__main__":
+    run()

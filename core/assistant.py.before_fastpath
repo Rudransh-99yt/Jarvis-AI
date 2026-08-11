@@ -4,7 +4,7 @@ from pathlib import Path
 
 from voice.live import record
 from voice.transcribe import transcribe
-from voice.speak import speak, wait_until_done
+from voice.speak import speak
 
 from agent.planner import plan
 from agent.executor import execute
@@ -70,63 +70,25 @@ def run():
             command = text
 
         # -------------------------
-        # FAST PATH
+        # PLANNER
         # -------------------------
         t2 = time.time()
 
-        command_lower = command.lower().strip()
+        tool_calls = plan(command)
 
-        fast_reply = None
+        planner_time = time.time() - t2
+
+        print(f"🧠 Planner: {planner_time:.2f}s")
 
         # -------------------------
-        # FAST PATH
+        # LLM / TOOL EXECUTION
         # -------------------------
-        if (
-            "what time" in command_lower
-            or "what's the time" in command_lower
-            or "tell me the time" in command_lower
-            or command_lower == "time"
-        ):
-            from datetime import datetime
-            fast_reply = datetime.now().strftime("It is %I:%M %p.")
+        t3 = time.time()
 
-        elif command_lower in {"tell me a joke", "tell a joke", "joke"}:
-            fast_reply = "Why did the computer go to the doctor? Because it had a virus."
+        if tool_calls:
+            results = execute(tool_calls)
 
-        elif command_lower in {"hello", "hi", "hey", "hello jarvis", "hi jarvis", "hey jarvis"}:
-            fast_reply = "Hello. How can I help?"
-
-        elif command_lower in {"thank you", "thanks", "thanks jarvis"}:
-            fast_reply = "You're welcome."
-
-
-        planner_time = 0.0
-        llm_time = 0.0
-
-        if fast_reply is not None:
-            reply = fast_reply
-            print("⚡ FAST PATH: time")
-        else:
-            # -------------------------
-            # PLANNER
-            # -------------------------
-            t2 = time.time()
-
-            tool_calls = plan(command)
-
-            planner_time = time.time() - t2
-
-            print(f"🧠 Planner: {planner_time:.2f}s")
-
-            # -------------------------
-            # LLM / TOOL EXECUTION
-            # -------------------------
-            t3 = time.time()
-
-            if tool_calls:
-                results = execute(tool_calls)
-
-                prompt = f"""
+            prompt = f"""
 User:
 {command}
 
@@ -136,14 +98,14 @@ Tool Results:
 Answer the user naturally using the tool results.
 """
 
-                reply = ask_ai(prompt)
+            reply = ask_ai(prompt)
 
-            else:
-                reply = ask_ai(command)
+        else:
+            reply = ask_ai(command)
 
-            llm_time = time.time() - t3
+        llm_time = time.time() - t3
 
-            print(f"🧠 LLM: {llm_time:.2f}s")
+        print(f"🧠 LLM: {llm_time:.2f}s")
 
         # -------------------------
         # SPEECH
@@ -155,11 +117,6 @@ Answer the user naturally using the tool results.
         speak(reply)
 
         speak_time = time.time() - t4
-
-        # CRITICAL: do not open the microphone while TTS is speaking
-        print("⏳ Waiting for Jarvis to finish speaking...")
-        wait_until_done()
-        print("✅ Jarvis finished speaking")
 
         print(f"🔊 Speak: {speak_time:.2f}s")
 

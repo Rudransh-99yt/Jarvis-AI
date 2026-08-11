@@ -1,0 +1,8 @@
+Loading MLX model...
+Fetching 9 files:   0%|          | 0/9 [00:00<?, ?it/s]Fetching 9 files: 100%|██████████| 9/9 [00:00<00:00, 2411.60it/s]
+Model loaded!
+🤖 Jarvis started.
+🎤 Using: MacBook Air Microphone
+🎤 Listening...
+✅ Saved voice/input.wav
+Fetching 4 files:   0%|          | 0/4 [00:00<?, ?it/s]Fetching 4 files: 100%|██████████| 4/4 [00:00<00:00, 1541.46it/s]
