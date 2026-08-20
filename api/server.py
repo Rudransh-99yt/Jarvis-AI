@@ -103,3 +103,21 @@ async def audio(sid,data):
     await sio.emit("reply",str(r),to=sid)
 
 socket_app=socketio.ASGIApp(sio,other_asgi_app=app)
+
+
+from fastapi import Body
+
+@app.post("/ask")
+async def ask_http(data: dict = Body(...)):
+    text=data["text"]
+
+    d=think(text)
+
+    if d["type"]=="tool":
+        r=execute(d)
+    elif d["type"]=="tools":
+        r=execute(d)
+    else:
+        r=d["text"]
+
+    return {"reply": str(r)}

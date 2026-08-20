@@ -6,42 +6,35 @@ const socket = io("http://127.0.0.1:8000",{transports:["websocket"]});
 
 export default function App(){
 
-  const [reply,setReply]=useState("Jarvis online.");
-  const [listening,setListening]=useState(false);
-  const recorder=useRef(null);
+  const [text,setText]=useState("");
+  const [thinking,setThinking]=useState(false);
+  const [messages,setMessages]=useState([
+    {role:"assistant",text:"Jarvis online."}
+  ]);
+
+  const endRef=useRef(null);
 
   useEffect(()=>{
-    socket.on("reply",setReply);
+    socket.on("reply",(msg)=>{
+      setMessages(m=>[...m,{role:"assistant",text:String(msg)}]);
+      setThinking(false);
+    });
+
     return()=>socket.off("reply");
   },[]);
 
-  async function toggle(){
+  useEffect(()=>{
+    endRef.current?.scrollIntoView({behavior:"smooth"});
+  },[messages]);
 
-    if(listening){
-      recorder.current.stop();
-      setListening(false);
-      return;
-    }
+  function ask(){
 
-    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    if(!text.trim()) return;
 
-    recorder.current=new MediaRecorder(stream);
-
-    const chunks=[];
-
-    recorder.current.ondataavailable=e=>chunks.push(e.data);
-
-    recorder.current.onstop=async()=>{
-
-      const blob=new Blob(chunks,{type:"audio/webm"});
-
-      const buffer=await blob.arrayBuffer();
-socket.emit("audio",new Uint8Array(buffer));
-    };
-
-    recorder.current.start();
-
-    setListening(true);
+    setMessages(m=>[...m,{role:"user",text}]);
+    socket.emit("ask",text);
+    setThinking(true);
+    setText("");
   }
 
   return(
@@ -49,12 +42,31 @@ socket.emit("audio",new Uint8Array(buffer));
 
       <h1>JARVIS</h1>
 
-      <button className="mic" onClick={toggle}>
-        {listening?"🔴 Stop":"🎙️ Speak"}
-      </button>
+      <div className="chat">
 
-      <div className="card">
-        <pre>{reply}</pre>
+        {messages.map((m,i)=>(
+          <div key={i} className={`bubble ${m.role}`}>
+            {m.text}
+          </div>
+        ))}
+
+        {thinking&&<div className="bubble assistant">Thinking...</div>}
+
+        <div ref={endRef}/>
+
+      </div>
+
+      <div className="inputBar">
+
+        <input
+          value={text}
+          onChange={e=>setText(e.target.value)}
+          onKeyDown={e=>e.key==="Enter"&&ask()}
+          placeholder="Ask Jarvis..."
+        />
+
+        <button onClick={ask}>Send</button>
+
       </div>
 
     </div>

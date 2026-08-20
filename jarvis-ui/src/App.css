@@ -84,3 +84,55 @@ pre{
 .reply-card{
   width:min(700px,90vw);
 }
+
+.chat{
+width:min(900px,92vw);
+height:420px;
+overflow-y:auto;
+display:flex;
+flex-direction:column;
+gap:12px;
+padding:18px;
+background:rgba(255,255,255,.04);
+border:1px solid rgba(255,255,255,.08);
+border-radius:22px;
+backdrop-filter:blur(20px);
+}
+
+.bubble{
+max-width:78%;
+padding:14px 18px;
+border-radius:18px;
+white-space:pre-wrap;
+overflow-wrap:anywhere;
+line-height:1.5;
+}
+
+.user{
+align-self:flex-end;
+background:#2563eb;
+}
+
+.assistant{
+align-self:flex-start;
+background:rgba(255,255,255,.08);
+}
+
+.inputBar{
+width:min(900px,92vw);
+display:flex;
+gap:12px;
+}
+
+.inputBar input{
+flex:1;
+}
+
+.inputBar button{
+padding:12px 24px;
+border:none;
+border-radius:14px;
+background:#2563eb;
+color:white;
+cursor:pointer;
+}
