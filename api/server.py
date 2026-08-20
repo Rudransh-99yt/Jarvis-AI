@@ -1,3 +1,6 @@
+import subprocess
+from pathlib import Path
+
 import socketio
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -5,6 +8,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from brain.jarvis_brain import think
 from brain.tools import execute
 
+# ---------- AI ----------
+
+# ---------- Socket ----------
 sio = socketio.AsyncServer(
     async_mode="asgi",
     cors_allowed_origins=["http://localhost:5173"],
@@ -22,34 +28,78 @@ app.add_middleware(
 
 @app.get("/health")
 def health():
-    return {"status": "online"}
+    return {"status":"online"}
 
 @sio.event
-async def connect(sid, environ):
-    print(f"✅ Connected: {sid}")
+async def connect(sid,environ):
+    print("CONNECTED:",sid)
 
 @sio.event
 async def disconnect(sid):
-    print(f"❌ Disconnected: {sid}")
+    print("DISCONNECTED:",sid)
 
 @sio.event
-async def ask(sid, text):
-    decision = think(text)
+async def ask(sid,text):
+    print("TEXT:",text)
 
-    if decision["type"] == "tool":
-        reply = execute(decision)
-    elif decision["type"] == "tools":
-        reply = execute(decision)
+    d=think(text)
+
+    if d["type"]=="tool":
+        r=execute(d)
+    elif d["type"]=="tools":
+        r=execute(d)
     else:
-        reply = decision["text"]
+        r=d["text"]
 
-    if isinstance(reply, list):
-        reply = "\n".join(map(str, reply))
-    elif isinstance(reply, dict):
-        reply = reply.get("text", str(reply))
+    await sio.emit("reply",str(r),to=sid)
+
+@sio.event
+async def audio(sid,data):
+
+    print("AUDIO RECEIVED")
+
+    Path("api/uploads").mkdir(parents=True,exist_ok=True)
+
+    webm="api/uploads/input.webm"
+    wav="api/uploads/input.wav"
+
+    with open(webm,"wb") as f:
+        f.write(bytes(data))
+
+    subprocess.run(
+        [
+            "ffmpeg","-y",
+            "-i",webm,
+            "-ar","16000",
+            "-ac","1",
+            wav
+        ],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+
+    txt="api/uploads/transcript"
+
+    subprocess.run([
+        "python","-m","mlx_audio.stt.generate",
+        "--model","mlx-community/parakeet-tdt-0.6b-v3",
+        "--audio",wav,
+        "--output-path",txt
+    ],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+
+    text=Path(txt+".txt").read_text().strip()
+
+    print("TRANSCRIPT:",text)
+
+    d=think(text)
+
+    if d["type"]=="tool":
+        r=execute(d)
+    elif d["type"]=="tools":
+        r=execute(d)
     else:
-        reply = str(reply)
+        r=d["text"]
 
-    await sio.emit("reply", reply, to=sid)
+    await sio.emit("reply",str(r),to=sid)
 
-socket_app = socketio.ASGIApp(sio, other_asgi_app=app)
+socket_app=socketio.ASGIApp(sio,other_asgi_app=app)
