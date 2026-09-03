@@ -1,4 +1,5 @@
-from pathlib import Path\n
+from pathlib import Path
+
 """
 Single-model Jarvis brain.
 
